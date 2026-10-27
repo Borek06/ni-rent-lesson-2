@@ -7,6 +7,7 @@ import json
 class Parameters(BaseModel):
     apartments_json_path: str = 'data/apartments.json'
     tenants_json_path: str = 'data/tenants.json'
+    bills_json_path: str = 'data/bills.json'
 
 
 class Room(BaseModel):
@@ -29,7 +30,18 @@ class Apartment(BaseModel):
         assert isinstance(data, dict), "Expected a dictionary of apartments"
         return {key: Apartment(**apartment) for key, apartment in data.items()}
 
-    
+class Bill(BaseModel):
+    amount: float
+    payment_date: str
+    bill_type: str
+    apartment: str
+
+    @staticmethod
+    def from_json_file(file_path: str) -> Dict[str, 'Bill']:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        return {key: Bill(**bill) for key, bill in data.items()}
+
 class Tenant(BaseModel):
     name: str
     apartment: str
@@ -38,6 +50,21 @@ class Tenant(BaseModel):
     deposit_pln: float
     date_agreement_from: str
     date_agreement_to: str
+
+    @staticmethod
+    def from_json_file(file_path: str) -> Dict[str, 'Tenant']:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        return {
+            key: Tenant(**tenant)
+            for key, tenant in data.items()
+        }
+
+class Transfer(BaseModel):
+    timestamp: str
+    amount: float
+    description: str
 
     @staticmethod
     def from_json_file(file_path: str) -> Dict[str,'Tenant']:
@@ -54,13 +81,14 @@ class Manager:
 
         self.apartments = {}
         self.tenants = {}
-       
+        self.bills = {}
+
         self.load_data()
 
     def load_data(self):
         self.apartments = Apartment.from_json_file(self.parameters.apartments_json_path)
         self.tenants = Tenant.from_json_file(self.parameters.tenants_json_path)
-
+        self.bills = Bill.from_json_file(self.parameters.bills_json_path)
 if __name__ == '__main__':
     parameters = Parameters()
     manager = Manager(parameters)
@@ -72,4 +100,6 @@ if __name__ == '__main__':
 
     for tenant in manager.tenants.values():
         print(tenant.name, tenant.apartment, tenant.room, tenant.rent_pln, tenant.deposit_pln, tenant.date_agreement_from, tenant.date_agreement_to)
-    
+
+    for bill in manager.bills.values():
+        print(bill.amount, bill.payment_date, bill.bill_type, bill.apartment)
