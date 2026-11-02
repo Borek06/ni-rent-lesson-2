@@ -1,7 +1,9 @@
-{
-  "transfer-1": {
-    "timestamp": "2026-10-27T10:30:00",
-    "amount": 1500.50,
-    "description": "Czynsz za mieszkanie"
-  }
-}
+[
+    {
+        "amount_pln": 2500,
+        "date": "2025-02-04",
+        "settlement_year": 2025,
+        "settlement_month": 2,
+        "tenant": "tenant-1"
+    }
+]

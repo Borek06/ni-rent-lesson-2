@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, List
 
 import json
 
@@ -9,6 +9,7 @@ class Parameters(BaseModel):
     apartments_json_path: str = 'data/apartments.json'
 
     tenants_json_path: str = 'data/tenants.json'
+    transfers_json_path: str = 'data/transfers.json'
     bills_json_path: str = 'data/bills.json'
 
 
@@ -64,12 +65,30 @@ class Tenant(BaseModel):
         }
 
 
+class Transfer(BaseModel):
+    amount_pln: float
+    date: str
+    settlement_year: int | None
+    settlement_month: int | None
+    tenant: str
+
+    @staticmethod
+    def from_json_file(file_path: str) -> List['Transfer']:
+        data = None
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        assert isinstance(data, list), "Expected a list of transfers"
+        return [Transfer(**transfer) for transfer in data]
+    
+
 class Manager:
     def __init__(self, parameters: Parameters):
         self.parameters = parameters 
 
         self.apartments = {}
         self.tenants = {}
+        self.transfers = []
+       
 
         #gdzie znalezc rachunki i przechowuje w manager bills
         self.bills = {}
@@ -79,6 +98,8 @@ class Manager:
     def load_data(self):
         self.apartments = Apartment.from_json_file(self.parameters.apartments_json_path)
         self.tenants = Tenant.from_json_file(self.parameters.tenants_json_path)
+        self.transfers = Transfer.from_json_file(self.parameters.transfers_json_path)
+
         # gdzie znalezc rachunki i przechowuje w manager bills
         self.bills = Bill.from_json_file(self.parameters.bills_json_path)
 if __name__ == '__main__':
@@ -92,6 +113,9 @@ if __name__ == '__main__':
 
     for tenant in manager.tenants.values():
         print(tenant.name, tenant.apartment, tenant.room, tenant.rent_pln, tenant.deposit_pln, tenant.date_agreement_from, tenant.date_agreement_to)
+        for transfer in manager.transfers:
+            if transfer.tenant == tenant.name:
+                print('  ', transfer.amount_pln, transfer.date, transfer.settlement_year, transfer.settlement_month)
     #wyswietlanie rachunkow
     for bill in manager.bills.values():
         print(bill.amount, bill.payment_date, bill.bill_type, bill.apartment)
