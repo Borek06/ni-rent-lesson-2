@@ -5,7 +5,9 @@ import json
 
 
 class Parameters(BaseModel):
+    #podlaczenie rachunkow do manager
     apartments_json_path: str = 'data/apartments.json'
+
     tenants_json_path: str = 'data/tenants.json'
     bills_json_path: str = 'data/bills.json'
 
@@ -31,11 +33,11 @@ class Apartment(BaseModel):
         return {key: Apartment(**apartment) for key, apartment in data.items()}
 
 class Bill(BaseModel):
-    amount: float
-    payment_date: str
-    bill_type: str
-    apartment: str
-
+    amount: float      #kwota rachunku
+    payment_date: str  #termin platnosci
+    bill_type: str    #rodzaj rachunku
+    apartment: str    #mieszkanie, ktorego dotyczy rachunek
+    #odczytanie rachunkow z JSON
     @staticmethod
     def from_json_file(file_path: str) -> Dict[str, 'Bill']:
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -61,19 +63,6 @@ class Tenant(BaseModel):
             for key, tenant in data.items()
         }
 
-class Transfer(BaseModel):
-    timestamp: str
-    amount: float
-    description: str
-
-    @staticmethod
-    def from_json_file(file_path: str) -> Dict[str,'Tenant']:
-        data = None
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-        assert isinstance(data, dict), "Expected a dictionary of tenants"
-        return {key: Tenant(**tenant) for key, tenant in data.items()}
-    
 
 class Manager:
     def __init__(self, parameters: Parameters):
@@ -81,6 +70,8 @@ class Manager:
 
         self.apartments = {}
         self.tenants = {}
+
+        #gdzie znalezc rachunki i przechowuje w manager bills
         self.bills = {}
 
         self.load_data()
@@ -88,6 +79,7 @@ class Manager:
     def load_data(self):
         self.apartments = Apartment.from_json_file(self.parameters.apartments_json_path)
         self.tenants = Tenant.from_json_file(self.parameters.tenants_json_path)
+        # gdzie znalezc rachunki i przechowuje w manager bills
         self.bills = Bill.from_json_file(self.parameters.bills_json_path)
 if __name__ == '__main__':
     parameters = Parameters()
@@ -100,6 +92,10 @@ if __name__ == '__main__':
 
     for tenant in manager.tenants.values():
         print(tenant.name, tenant.apartment, tenant.room, tenant.rent_pln, tenant.deposit_pln, tenant.date_agreement_from, tenant.date_agreement_to)
-
+    #wyswietlanie rachunkow
     for bill in manager.bills.values():
         print(bill.amount, bill.payment_date, bill.bill_type, bill.apartment)
+
+    #dlatego widzimy na koncu programu:
+    #250.0 2026-10-20 prad apart-polanka
+    #120.0 2026-10-25 woda apart-polanka
