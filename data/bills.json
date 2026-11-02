@@ -1,0 +1,14 @@
+{
+  "bill-1": {
+    "amount": 250.0,
+    "payment_date": "2026-10-20",
+    "bill_type": "prad",
+    "apartment": "apart-polanka"
+  },
+  "bill-2": {
+    "amount": 120.0,
+    "payment_date": "2026-10-25",
+    "bill_type": "woda",
+    "apartment": "apart-polanka"
+  }
+}
